@@ -4,38 +4,37 @@ title: How TLS Handshake works?
 description: tls handshake
 tags:
   - dev/network
-posted:
+posted: https://blog.realbro.dev/posts/how-tls-handshake-works/
 slug: how-tls-handshake-works
 author:
   - realbro
 ---
 
-The goal of SSL/TLS is to achieve secure *symmetric* encryption, while it uses asymmetric encryption during TLS handshake.
+### Symmetric and Asymmetric Encryption
 
-(more: why use symmetric encryption at result?)
+The goal of SSL/TLS is to achieve secure symmetric encryption, while it uses asymmetric encryption during TLS handshake.
 
-TLS handshake happens after [TCP handshake](https://developer.mozilla.org/en-US/docs/Glossary/TCP_handshake), and here is step by step:
+**The reason why it uses symmetric encryption is performance.** Symmetric encryption (AES) is significantly faster than asymmetric encryption. Asymmetric can only handle small data chunks, while symmetric can efficiently process bulk data. **Asymmetric is used only for the handshake to solve the key distribution problem.**
 
 ![TLS handshake - cloudflare.com](tls_handshake_diagram.webp)
 
-1. Client Hello
-    1. send supported TLS version, cypher suites, and "client random" string.
-2. Server Hello
-    1. send chosen TLS version, cypher suites, "server random" string, and SSL Certificate.
-3. Certificate Authentication at Client
-    1. client authenticate server using SSL certificate given. 
-4. Client sends Premaster Secret to Server
-    1. encrypts premaster secret using public key in SSL certificate.
-5. both generate session key using 1. client random, 2. server random, and 3. premaster secret
-    1. client has all three
-    2. server has two, client random and server random, and decrypts premaster secret using private key of certificate.
-6. Client Ready
-7. Server Ready
-8. Secure Symmetric Encryption Achieved.
+### TLS Handshake Steps with RSA
 
-Make sure that this is not all cases of TLS handshake, only RSA key exchange algorithm, which is not supported TLSv1.3, considered not secure.
+TLS handshake happens after TCP handshake, and here is step by step:
 
-(more: why RSA algorithm is considered to be not secure?)
+1. **Client Hello**: Client sends supported TLS version, cipher suites, and "client random" string.
+2. **Server Hello**: Server sends chosen TLS version, cipher suite, and "server random" string.
+3. **Server Certificate**: Server sends SSL Certificate.
+4. **Certificate Authentication**: Client authenticates server using the SSL certificate.
+5. **Premaster Secret**: Client encrypts premaster secret using public key from SSL certificate and sends it to server.
+6. **Session Key Generation**: Both generate session key using client random, server random, and premaster secret.
+    - Client has all three values.
+    - Server has client random and server random, then decrypts premaster secret using certificate's private key.
+7. **Client Ready**: Client signals it's ready to begin encrypted communication.
+8. **Server Ready**: Server signals it's ready to begin encrypted communication.
+9. **Secure Symmetric Encryption Achieved**.
+
+This describes only the RSA key exchange algorithm for a "full handshake". RSA key exchange is not supported in TLSv1.3 and is considered insecure. (TODO: reasons for insecurity)
 
 ### Reference
 
